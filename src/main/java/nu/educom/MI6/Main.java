@@ -3,13 +3,22 @@ package nu.educom.MI6;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class Main {
   static List<String> blacklist = new ArrayList<>();
   static List<Agent> agents = new ArrayList<>();
+  static JFrame frame = new JFrame("Secret Service Login");
+  static JPanel panel = new JPanel();
+  static JOptionPane pane = new JOptionPane();
+
 
   public static void main(String[] args) {
+
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.pack();
+    panel.add(pane);
+    frame.add(panel);
+
     while (true) {
       String name = checkName();
       int serviceNumber = checkServiceNumber();
@@ -18,15 +27,13 @@ public class Main {
   }
 
   public static String checkName() {
-    Scanner scanner = new Scanner(System.in);
-    JFrame frame = new JFrame("InputDialog");
-
-    // prompt the user to enter their name
 
     String name = JOptionPane.showInputDialog(frame, "Enter your name or enter 'stop' to exit");
-    while (name == null) {
+
+    while (name == null || name.isEmpty()) {
       name = JOptionPane.showInputDialog(frame, "Please enter a name");
-    };
+    }
+
     while (blacklist.contains(name) || name == null || name.isEmpty()) {
       JOptionPane.showMessageDialog(null, "ACCESS DENIED!",
         "Error", JOptionPane.ERROR_MESSAGE);
@@ -40,15 +47,15 @@ public class Main {
   }
 
   public static int checkServiceNumber() {
-    String input = "";
+    String input;
     int serviceNumber = -1;
-      while (serviceNumber == -1) {
-        input = JOptionPane.showInputDialog("Enter your (positive) service number between 1 and 956");
-        serviceNumber = stringToInt(input);
-        if (serviceNumber <= 0 || serviceNumber > 956) {
-          serviceNumber = -1;
-        }
+    while (serviceNumber == -1) {
+      input = JOptionPane.showInputDialog("Enter your (positive) service number between 1 and 956");
+      serviceNumber = stringToInt(input);
+      if (serviceNumber <= 0 || serviceNumber > 956) {
+        serviceNumber = -1;
       }
+    }
     return serviceNumber;
   }
 
@@ -59,7 +66,7 @@ public class Main {
       JOptionPane.showMessageDialog(null, String.format("You have been logged in with your service number" + String.format("%03d, agent %s", serviceNumber, name)));
     } else {
       JOptionPane.showMessageDialog(null, "Wrong!", "Error", JOptionPane.ERROR_MESSAGE);
-        blacklist.add(name);
+      blacklist.add(name);
     }
   }
 
@@ -67,8 +74,7 @@ public class Main {
 
     try {
       return Integer.parseInt(string);
-    }
-    catch (NumberFormatException e) {
+    } catch (NumberFormatException e) {
       JOptionPane.showMessageDialog(null, "Not a number! Please enter a number.");
       return -1;
     }
