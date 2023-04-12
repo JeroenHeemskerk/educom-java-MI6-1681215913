@@ -1,5 +1,6 @@
 package nu.educom.MI6;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -18,12 +19,19 @@ public class Main {
 
   public static String checkName() {
     Scanner scanner = new Scanner(System.in);
-    System.out.println("Enter your name or enter 'stop' to exit");
-    String name = scanner.nextLine();
-    while (blacklist.contains(name)) {
-      System.out.println("Access denied");
+    JFrame frame = new JFrame("InputDialog");
+
+    // prompt the user to enter their name
+
+    String name = JOptionPane.showInputDialog(frame, "Enter your name or enter 'stop' to exit");
+    while (name == null) {
+      name = JOptionPane.showInputDialog(frame, "Please enter a name");
+    };
+    while (blacklist.contains(name) || name == null || name.isEmpty()) {
+      JOptionPane.showMessageDialog(null, "ACCESS DENIED!",
+        "Error", JOptionPane.ERROR_MESSAGE);
       System.out.println("Enter another name");
-      name = scanner.nextLine();
+      name = JOptionPane.showInputDialog(frame, "Enter another name");
     }
     if (name.equalsIgnoreCase("stop")) {
       System.exit(0);
@@ -32,30 +40,37 @@ public class Main {
   }
 
   public static int checkServiceNumber() {
-    Scanner serviceNumScan = new Scanner(System.in);
-    int serviceNumber;
-    do {
-      System.out.println("Enter your (positive) service number between 1 and 956");
-      while (!serviceNumScan.hasNextInt()) {
-        System.out.println("Please enter a number");
-        serviceNumScan.next();
+    String input = "";
+    int serviceNumber = -1;
+      while (serviceNumber == -1) {
+        input = JOptionPane.showInputDialog("Enter your (positive) service number between 1 and 956");
+        serviceNumber = stringToInt(input);
+        if (serviceNumber <= 0 || serviceNumber > 956) {
+          serviceNumber = -1;
+        }
       }
-      serviceNumber = serviceNumScan.nextInt();
-    } while (serviceNumber <= 0 || serviceNumber > 956);
     return serviceNumber;
   }
 
   public static void checkSecretCode(String name, int serviceNumber) {
-    Scanner scanner = new Scanner(System.in);
-    System.out.println("Enter the secret code");
-    String userCode = scanner.nextLine();
-    if (userCode.equals("For ThE Royal QUEEN")) {
+    String userCode = JOptionPane.showInputDialog("Enter the secret code");
+    if (userCode.equals("test")) {
       agents.add(new Agent(name, String.format("%03d", serviceNumber), true));
-      System.out.printf("You have been logged in with your service number %s, agent %s", String.format("%03d", serviceNumber), name);
-      System.out.println();
+      JOptionPane.showMessageDialog(null, String.format("You have been logged in with your service number" + String.format("%03d, agent %s", serviceNumber, name)));
     } else {
-      System.out.println("Wrong!");
-      blacklist.add(name);
+      JOptionPane.showMessageDialog(null, "Wrong!", "Error", JOptionPane.ERROR_MESSAGE);
+        blacklist.add(name);
+    }
+  }
+
+  private static int stringToInt(String string) {
+
+    try {
+      return Integer.parseInt(string);
+    }
+    catch (NumberFormatException e) {
+      JOptionPane.showMessageDialog(null, "Not a number! Please enter a number.");
+      return -1;
     }
   }
 }
