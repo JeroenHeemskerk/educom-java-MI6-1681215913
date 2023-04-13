@@ -1,73 +1,88 @@
 package nu.educom.MI6;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-  static List<String> blacklist = new ArrayList<>();
-  static List<Agent> agents = new ArrayList<>();
-  static JFrame frame = new JFrame("Secret Service Login");
-  static JPanel panel = new JPanel();
-  static JOptionPane pane = new JOptionPane();
+  private static JFrame frame;
+  private static JTextField serviceNumberField;
+  private static JPasswordField secretCodeField;
+  private static JLabel lblServiceNumber, lblSecretCode;
+  private static JButton submit;
+  private static JOptionPane pane;
+  private static GridBagLayout gbl;
+  private static GridBagConstraints gbc;
 
+  private static ActionListener submitInfo = new SubmitAction();
 
   public static void main(String[] args) {
 
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    serviceNumberField = new JTextField(20);
+    secretCodeField = new JPasswordField(20);
+
+    lblServiceNumber = new JLabel("Enter your service number");
+    lblSecretCode = new JLabel("Enter your secret code");
+
+    submit = new JButton("Log in");
+    submit.addActionListener(submitInfo);
+
+    pane = new JOptionPane("test");
+
+    gbl = new GridBagLayout();
+    gbc = new GridBagConstraints();
+
+    frame = new JFrame("Secret Service Login");
+    frame.setLayout(gbl);
+
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 1;
+    gbc.gridheight = 1;
+    frame.add(lblServiceNumber, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridwidth = 5;
+    gbc.weightx = 1;
+    frame.add(serviceNumberField, gbc);
+
+    gbc.gridy = 1;
+    gbc.gridx = 0;
+    gbc.gridwidth = 1;
+    frame.add(lblSecretCode, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridwidth = 5;
+    frame.add(secretCodeField, gbc);
+
+    gbc.gridy = 2;
+    gbc.gridwidth = 5;
+    frame.add(submit, gbc);
+
+    gbc.gridy = 3;
+    gbc.gridwidth = 5;
+    pane.setVisible(false);
+    frame.add(pane, gbc);
+
     frame.pack();
-    panel.add(pane);
-    frame.add(panel);
-
-    while (true) {
-      String name = checkName();
-      int serviceNumber = checkServiceNumber();
-      checkSecretCode(name, serviceNumber);
-    }
+    frame.setVisible(true);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
-  public static String checkName() {
-
-    String name = JOptionPane.showInputDialog(frame, "Enter your name or enter 'stop' to exit");
-
-    while (name == null || name.isEmpty()) {
-      name = JOptionPane.showInputDialog(frame, "Please enter a name");
-    }
-
-    while (blacklist.contains(name) || name == null || name.isEmpty()) {
-      JOptionPane.showMessageDialog(null, "ACCESS DENIED!",
-        "Error", JOptionPane.ERROR_MESSAGE);
-      System.out.println("Enter another name");
-      name = JOptionPane.showInputDialog(frame, "Enter another name");
-    }
-    if (name.equalsIgnoreCase("stop")) {
-      System.exit(0);
-    }
-    return name;
-  }
 
   public static int checkServiceNumber() {
     String input;
-    int serviceNumber = -1;
-    while (serviceNumber == -1) {
-      input = JOptionPane.showInputDialog("Enter your (positive) service number between 1 and 956");
-      serviceNumber = stringToInt(input);
-      if (serviceNumber <= 0 || serviceNumber > 956) {
-        serviceNumber = -1;
-      }
+    int serviceNumber;
+    input = serviceNumberField.getText();
+    serviceNumber = stringToInt(input);
+    if (serviceNumber <= 0 || serviceNumber > 956) {
+      serviceNumber = -1;
     }
-    return serviceNumber;
-  }
 
-  public static void checkSecretCode(String name, int serviceNumber) {
-    String userCode = JOptionPane.showInputDialog("Enter the secret code");
-    if (userCode.equals("test")) {
-      agents.add(new Agent(name, String.format("%03d", serviceNumber), true));
-      JOptionPane.showMessageDialog(null, String.format("You have been logged in with your service number" + String.format("%03d, agent %s", serviceNumber, name)));
-    } else {
-      JOptionPane.showMessageDialog(null, "Wrong!", "Error", JOptionPane.ERROR_MESSAGE);
-      blacklist.add(name);
-    }
+    return serviceNumber;
   }
 
   private static int stringToInt(String string) {
@@ -75,8 +90,29 @@ public class Main {
     try {
       return Integer.parseInt(string);
     } catch (NumberFormatException e) {
-      JOptionPane.showMessageDialog(null, "Not a number! Please enter a number.");
+      pane.setVisible(true);
+      pane.showMessageDialog(frame, "Not a number! Please enter a number.");
+      pane.setVisible(false);
       return -1;
+    }
+  }
+
+  private static class SubmitAction implements ActionListener {
+    public void actionPerformed(ActionEvent e) {
+      int serviceNumber = checkServiceNumber();
+      String secretCode = secretCodeField.getText();
+
+      if (serviceNumber != -1 && secretCode.equals("test")) {
+        pane.setVisible(true);
+        pane.showMessageDialog(frame, String.format("You have been logged in with your service number %03d ", serviceNumber));
+        pane.setVisible(false);
+        serviceNumberField.setText("");
+        secretCodeField.setText("");
+      } else {
+        pane.setVisible(true);
+        pane.showMessageDialog(frame, "ACCESS DENIED!", "Error", pane.ERROR_MESSAGE);
+        pane.setVisible(false);
+      }
     }
   }
 }
