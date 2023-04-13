@@ -1,11 +1,10 @@
 package nu.educom.MI6;
 
+import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
   private static JFrame frame;
@@ -21,55 +20,76 @@ public class Main {
 
   public static void main(String[] args) {
 
-    serviceNumberField = new JTextField(20);
-    secretCodeField = new JPasswordField(20);
+    String sql = "SELECT `service_number`, `secret_code`, `active`" +
+      "FROM agents";
 
-    lblServiceNumber = new JLabel("Enter your service number");
-    lblSecretCode = new JLabel("Enter your secret code");
+    try (Connection conn = DatabaseRepository.connectWithDatabase();
+         Statement stmt  = conn.createStatement();
+         ResultSet rs    = stmt.executeQuery(sql)) {
 
-    submit = new JButton("Log in");
-    submit.addActionListener(submitInfo);
+      // loop through the result set
+      while (rs.next()) {
+        System.out.println(rs.getString("service_number") + "\t" +
+          rs.getString("secret_code")  + "\t" + rs.getBoolean("active")  + "\t");
 
-    pane = new JOptionPane("test");
 
-    gbl = new GridBagLayout();
-    gbc = new GridBagConstraints();
+      }
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
 
-    frame = new JFrame("Secret Service Login");
-    frame.setLayout(gbl);
 
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.gridwidth = 1;
-    gbc.gridheight = 1;
-    frame.add(lblServiceNumber, gbc);
-
-    gbc.gridx = 1;
-    gbc.gridwidth = 5;
-    gbc.weightx = 1;
-    frame.add(serviceNumberField, gbc);
-
-    gbc.gridy = 1;
-    gbc.gridx = 0;
-    gbc.gridwidth = 1;
-    frame.add(lblSecretCode, gbc);
-
-    gbc.gridx = 1;
-    gbc.gridwidth = 5;
-    frame.add(secretCodeField, gbc);
-
-    gbc.gridy = 2;
-    gbc.gridwidth = 5;
-    frame.add(submit, gbc);
-
-    gbc.gridy = 3;
-    gbc.gridwidth = 5;
-    pane.setVisible(false);
-    frame.add(pane, gbc);
-
-    frame.pack();
-    frame.setVisible(true);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//
+//
+//    serviceNumberField = new JTextField(20);
+//    secretCodeField = new JPasswordField(20);
+//
+//    lblServiceNumber = new JLabel("Enter your service number");
+//    lblSecretCode = new JLabel("Enter your secret code");
+//
+//    submit = new JButton("Log in");
+//    submit.addActionListener(submitInfo);
+//
+//    pane = new JOptionPane("test");
+//
+//    gbl = new GridBagLayout();
+//    gbc = new GridBagConstraints();
+//
+//    frame = new JFrame("Secret Service Login");
+//    frame.setLayout(gbl);
+//
+//    gbc.gridx = 0;
+//    gbc.gridy = 0;
+//    gbc.gridwidth = 1;
+//    gbc.gridheight = 1;
+//    frame.add(lblServiceNumber, gbc);
+//
+//    gbc.gridx = 1;
+//    gbc.gridwidth = 5;
+//    gbc.weightx = 1;
+//    frame.add(serviceNumberField, gbc);
+//
+//    gbc.gridy = 1;
+//    gbc.gridx = 0;
+//    gbc.gridwidth = 1;
+//    frame.add(lblSecretCode, gbc);
+//
+//    gbc.gridx = 1;
+//    gbc.gridwidth = 5;
+//    frame.add(secretCodeField, gbc);
+//
+//    gbc.gridy = 2;
+//    gbc.gridwidth = 5;
+//    frame.add(submit, gbc);
+//
+//    gbc.gridy = 3;
+//    gbc.gridwidth = 5;
+//    pane.setVisible(false);
+//    frame.add(pane, gbc);
+//
+//    frame.pack();
+//    frame.setVisible(true);
+//    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
 
