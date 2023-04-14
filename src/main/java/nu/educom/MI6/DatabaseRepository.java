@@ -6,6 +6,7 @@ import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -42,21 +43,95 @@ public class DatabaseRepository {
     }
     return conn;
   }
+
+  public static void selectAll() {
+    String sql = "SELECT `service_number`, `secret_code`, `active` FROM agents";
+
+    try (Connection conn = connectWithDatabase();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+
+      // loop through the result set
+      while (rs.next()) {
+        System.out.println(rs.getString("service_number") + "\t" +
+          rs.getString("secret_code") + "\t" + rs.getBoolean("active") + "\t");
+
+
+      }
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+  }
+
+  public static boolean authenticateAgent(String serviceNumber, String secret) throws SQLException {
+    String sql = "SELECT * FROM agents WHERE `service_number`=? AND `secret_code`=?";
+
+    try {
+      Connection conn = connectWithDatabase();
+      PreparedStatement preparedStmt = conn.prepareStatement(sql);
+      preparedStmt.setString(1, serviceNumber);
+      preparedStmt.setString(2, secret);
+      ResultSet rs = preparedStmt.executeQuery();
+      boolean exists = rs.next();
+      if(exists) {
+        return true;
+      }
+
+      rs.close();
+      preparedStmt.close();
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+
+    return false;
+  }
+
+  public static List<LoginAttempt> getLastLoginAttempts(String serviceNumber) {
+    String sql = "SELECT * FROM login_attempts WHERE `service_number`= ?";
+    List<LoginAttempt> loginAttempts;
+    try {
+      Connection conn = connectWithDatabase();
+      PreparedStatement preparedStmt = conn.prepareStatement(sql);
+      preparedStmt.setString(1, serviceNumber);
+      ResultSet rs = preparedStmt.executeQuery();
+
+      while (rs.next()) {
+        System.out.println(rs.getString("service_number") + "\t" +
+          rs.getString("attempt_id"));
+
+
+      }
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    return null;
+  }
+
+  public static void setLoginAttempt(String serviceNumber, boolean succesful) {
+    String sql = "INSERT INTO login_attempts(`service_number`, login_time, successful_attempt) VALUES (?, ?, ?)";
+
+    try {
+      Connection conn = connectWithDatabase();
+      PreparedStatement preparedStmt = conn.prepareStatement(sql);
+      preparedStmt.setString(1, serviceNumber);
+      preparedStmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+      preparedStmt.setBoolean(3, succesful);
+      int rs = preparedStmt.executeUpdate();
+
+      //rs.close();
+      preparedStmt.close();
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+
+  }
 }
 
 
-//    try {
-//      Class.forName("com.mysql.jdbc.Driver");
-//      Connection con = DriverManager.getConnection(
-//        "jdbc:mysql://localhost:3306/mi6", "mi6_agents", "agent_test");
-//      Statement stmt = con.createStatement();
-//      ResultSet rs = stmt.executeQuery("select * from agents WHERE service_number = '002'");
-//      while (rs.next())
-//        System.out.println(rs.getInt(1) + "  " + rs.getString(2) + "  " + rs.getString(3));
-//      con.close();
-//    } catch (Exception e) {
-//      System.out.println(e);
-//    }
+
 
 
 

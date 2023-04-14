@@ -18,78 +18,63 @@ public class Main {
 
   private static ActionListener submitInfo = new SubmitAction();
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws SQLException {
 
-    String sql = "SELECT `service_number`, `secret_code`, `active`" +
-      "FROM agents";
-
-    try (Connection conn = DatabaseRepository.connectWithDatabase();
-         Statement stmt  = conn.createStatement();
-         ResultSet rs    = stmt.executeQuery(sql)) {
-
-      // loop through the result set
-      while (rs.next()) {
-        System.out.println(rs.getString("service_number") + "\t" +
-          rs.getString("secret_code")  + "\t" + rs.getBoolean("active")  + "\t");
+  DatabaseRepository.selectAll();
+  System.out.println(DatabaseRepository.authenticateAgent("002", "test002"));
+  DatabaseRepository.getLastLoginAttempts("002");
+  DatabaseRepository.setLoginAttempt("002", true);
 
 
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
+    serviceNumberField = new JTextField(20);
+    secretCodeField = new JPasswordField(20);
 
+    lblServiceNumber = new JLabel("Enter your service number");
+    lblSecretCode = new JLabel("Enter your secret code");
 
-//
-//
-//    serviceNumberField = new JTextField(20);
-//    secretCodeField = new JPasswordField(20);
-//
-//    lblServiceNumber = new JLabel("Enter your service number");
-//    lblSecretCode = new JLabel("Enter your secret code");
-//
-//    submit = new JButton("Log in");
-//    submit.addActionListener(submitInfo);
-//
-//    pane = new JOptionPane("test");
-//
-//    gbl = new GridBagLayout();
-//    gbc = new GridBagConstraints();
-//
-//    frame = new JFrame("Secret Service Login");
-//    frame.setLayout(gbl);
-//
-//    gbc.gridx = 0;
-//    gbc.gridy = 0;
-//    gbc.gridwidth = 1;
-//    gbc.gridheight = 1;
-//    frame.add(lblServiceNumber, gbc);
-//
-//    gbc.gridx = 1;
-//    gbc.gridwidth = 5;
-//    gbc.weightx = 1;
-//    frame.add(serviceNumberField, gbc);
-//
-//    gbc.gridy = 1;
-//    gbc.gridx = 0;
-//    gbc.gridwidth = 1;
-//    frame.add(lblSecretCode, gbc);
-//
-//    gbc.gridx = 1;
-//    gbc.gridwidth = 5;
-//    frame.add(secretCodeField, gbc);
-//
-//    gbc.gridy = 2;
-//    gbc.gridwidth = 5;
-//    frame.add(submit, gbc);
-//
-//    gbc.gridy = 3;
-//    gbc.gridwidth = 5;
-//    pane.setVisible(false);
-//    frame.add(pane, gbc);
-//
-//    frame.pack();
-//    frame.setVisible(true);
-//    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    submit = new JButton("Log in");
+    submit.addActionListener(submitInfo);
+
+    pane = new JOptionPane("test");
+
+    gbl = new GridBagLayout();
+    gbc = new GridBagConstraints();
+
+    frame = new JFrame("Secret Service Login");
+    frame.setLayout(gbl);
+
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 1;
+    gbc.gridheight = 1;
+    frame.add(lblServiceNumber, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridwidth = 5;
+    gbc.weightx = 1;
+    frame.add(serviceNumberField, gbc);
+
+    gbc.gridy = 1;
+    gbc.gridx = 0;
+    gbc.gridwidth = 1;
+    frame.add(lblSecretCode, gbc);
+
+    gbc.gridx = 1;
+    gbc.gridwidth = 5;
+    frame.add(secretCodeField, gbc);
+
+    gbc.gridy = 2;
+    gbc.gridwidth = 5;
+    frame.add(submit, gbc);
+
+    gbc.gridy = 3;
+    gbc.gridwidth = 5;
+    pane.setVisible(false);
+    frame.add(pane, gbc);
+
+    frame.pack();
+    frame.setVisible(true);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
 
@@ -121,17 +106,20 @@ public class Main {
     public void actionPerformed(ActionEvent e) {
       int serviceNumber = checkServiceNumber();
       String secretCode = secretCodeField.getText();
-
-      if (serviceNumber != -1 && secretCode.equals("test")) {
-        pane.setVisible(true);
-        pane.showMessageDialog(frame, String.format("You have been logged in with your service number %03d ", serviceNumber));
-        pane.setVisible(false);
-        serviceNumberField.setText("");
-        secretCodeField.setText("");
-      } else {
-        pane.setVisible(true);
-        pane.showMessageDialog(frame, "ACCESS DENIED!", "Error", pane.ERROR_MESSAGE);
-        pane.setVisible(false);
+      try {
+        if (DatabaseRepository.authenticateAgent(String.format("%03d",serviceNumber), secretCode)) {
+          pane.setVisible(true);
+          pane.showMessageDialog(frame, String.format("You have been logged in with your service number %03d ", serviceNumber));
+          pane.setVisible(false);
+          serviceNumberField.setText("");
+          secretCodeField.setText("");
+        } else {
+          pane.setVisible(true);
+          pane.showMessageDialog(frame, "ACCESS DENIED!", "Error", pane.ERROR_MESSAGE);
+          pane.setVisible(false);
+        }
+      } catch (SQLException ex) {
+        throw new RuntimeException(ex);
       }
     }
   }

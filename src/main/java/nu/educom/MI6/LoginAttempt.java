@@ -6,7 +6,6 @@ public class LoginAttempt {
 
   private int attemptId;
   private int agentId;
-  private int serviceNumber;
   private Timestamp loginTime;
   private boolean succesfulAttempt;
 
@@ -22,27 +21,15 @@ public class LoginAttempt {
   public void setAgentId(int agentId) {
     this.agentId = agentId;
   }
-
-  public int getServiceNumber() {
-    return serviceNumber;
-  }
-
-  public void setServiceNumber(int serviceNumber) {
-    this.serviceNumber = serviceNumber;
-  }
-
   public Timestamp getLoginTime() {
     return loginTime;
   }
-
   public void setLoginTime(Timestamp loginTime) {
     this.loginTime = loginTime;
   }
-
   public boolean isSuccesfulAttempt() {
     return succesfulAttempt;
   }
-
   public void setSuccesfulAttempt(boolean succesfulAttempt) {
     this.succesfulAttempt = succesfulAttempt;
   }
