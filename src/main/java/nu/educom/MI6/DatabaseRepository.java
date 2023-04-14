@@ -30,12 +30,10 @@ public class DatabaseRepository {
 
       // assign db parameters
       String url = pros.getProperty("url");
-      String user = pros.getProperty("user");
-      String password = pros.getProperty("password");
 
       // create a connection to the database
       Class.forName("com.mysql.jdbc.Driver");
-      conn = DriverManager.getConnection(url, user, password);
+      conn = DriverManager.getConnection(url, pros);
     } catch (IOException e) {
       System.out.println(e.getMessage());
     } catch (ClassNotFoundException e) {
