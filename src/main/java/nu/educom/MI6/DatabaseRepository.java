@@ -6,6 +6,8 @@ import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -15,10 +17,9 @@ public class DatabaseRepository {
    * Get database connection
    *
    * @return a Connection object
-   * @throws SQLException
    */
 
-  public static Connection connectWithDatabase() throws SQLException {
+  public Connection connectWithDatabase() throws SQLException {
 
     Connection conn = null;
 
@@ -42,37 +43,23 @@ public class DatabaseRepository {
     return conn;
   }
 
-  public static void selectAll() {
-    String sql = "SELECT `service_number`, `secret_code`, `active` FROM agents";
-
-    try (Connection conn = connectWithDatabase();
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery(sql)) {
-
-      // loop through the result set
-      while (rs.next()) {
-        System.out.println(rs.getString("service_number") + "\t" +
-          rs.getString("secret_code") + "\t" + rs.getBoolean("active") + "\t");
-
-
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-  }
-
-  public static boolean authenticateAgent(String serviceNumber, String secret) throws SQLException {
-    String sql = "SELECT * FROM agents WHERE `service_number`=? AND `secret_code`=?";
+  Agent readAgentByServiceNr(String serviceNumber) {
+    String sql = "SELECT * FROM agents WHERE `service_number`=?";
 
     try {
       Connection conn = connectWithDatabase();
       PreparedStatement preparedStmt = conn.prepareStatement(sql);
       preparedStmt.setString(1, serviceNumber);
-      preparedStmt.setString(2, secret);
       ResultSet rs = preparedStmt.executeQuery();
       boolean exists = rs.next();
-      if(exists) {
-        return true;
+      if (exists) {
+        int id = rs.getInt("id");
+        String serviceNum = rs.getString("service_number");
+        String secretCode = rs.getString("secret_code");
+        boolean active = rs.getBoolean("active");
+        boolean licenseToKill = rs.getBoolean("license_to_kill");
+        Date date = rs.getDate("license_valid_until");
+        return new Agent(id, serviceNum, secretCode, active, licenseToKill, date);
       }
 
       rs.close();
@@ -82,12 +69,42 @@ public class DatabaseRepository {
       System.out.println(ex.getMessage());
     }
 
-    return false;
+    return null;
   }
 
-  public static List<LoginAttempt> getLastLoginAttempts(String serviceNumber) {
+  public Agent authenticateAgent(String serviceNumber, String secret) {
+    String sql = "SELECT * FROM agents WHERE `service_number`=? AND `secret_code`=?";
+
+    try {
+      Connection conn = connectWithDatabase();
+      PreparedStatement preparedStmt = conn.prepareStatement(sql);
+      preparedStmt.setString(1, serviceNumber);
+      preparedStmt.setString(2, secret);
+      ResultSet rs = preparedStmt.executeQuery();
+      if (rs.next()) {
+        int id = rs.getInt("id");
+        String serviceNum = rs.getString("service_number");
+        String secretCode = rs.getString("secret_code");
+        boolean active = rs.getBoolean("active");
+        boolean licenseToKill = rs.getBoolean("license_to_kill");
+        Date date = rs.getDate("license_valid_until");
+        System.out.println("id: " + id + "serviceNum: " + serviceNum + "secret code: " + secretCode + "active: " + active + "license to kill " + licenseToKill + "license valid until" + date);
+        return new Agent(id, serviceNum, secretCode, active, licenseToKill, date);
+      }
+      rs.close();
+      preparedStmt.close();
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    return null;
+
+
+  }
+
+  public List<LoginAttempt> getLastLoginAttempts(String serviceNumber) {
     String sql = "SELECT * FROM login_attempts WHERE `service_number`= ?";
-    List<LoginAttempt> loginAttempts;
+    List<LoginAttempt> loginAttempts = new ArrayList<>();
     try {
       Connection conn = connectWithDatabase();
       PreparedStatement preparedStmt = conn.prepareStatement(sql);
@@ -95,8 +112,7 @@ public class DatabaseRepository {
       ResultSet rs = preparedStmt.executeQuery();
 
       while (rs.next()) {
-        System.out.println(rs.getString("service_number") + "\t" +
-          rs.getString("attempt_id"));
+        loginAttempts.add(new LoginAttempt(rs.getInt("attempt_id"), rs.getInt("agent_id"), rs.getTimestamp("login_time").toLocalDateTime(), rs.getBoolean("successful_attempt")));
 
 
       }
@@ -104,21 +120,20 @@ public class DatabaseRepository {
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
     }
-    return null;
+    return loginAttempts;
   }
 
-  public static void setLoginAttempt(String serviceNumber, boolean succesful) {
-    String sql = "INSERT INTO login_attempts(`service_number`, login_time, successful_attempt) VALUES (?, ?, ?)";
+  public void insertLoginAttempt (LoginAttempt attempt) {
+    String sql = "INSERT INTO login_attempts(`agent_id`, login_time, successful_attempt) VALUES (?, ?, ?)";
 
     try {
       Connection conn = connectWithDatabase();
       PreparedStatement preparedStmt = conn.prepareStatement(sql);
-      preparedStmt.setString(1, serviceNumber);
-      preparedStmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-      preparedStmt.setBoolean(3, succesful);
-      int rs = preparedStmt.executeUpdate();
+      preparedStmt.setInt(1, attempt.getAgentId());
+      preparedStmt.setTimestamp(2, Timestamp.valueOf(attempt.getLoginTime()));
+      preparedStmt.setBoolean(3, attempt.isSuccessfulAttempt());
+      preparedStmt.executeUpdate();
 
-      //rs.close();
       preparedStmt.close();
 
     } catch (SQLException ex) {

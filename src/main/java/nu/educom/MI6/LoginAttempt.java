@@ -1,13 +1,27 @@
 package nu.educom.MI6;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class LoginAttempt {
 
   private int attemptId;
   private int agentId;
-  private Timestamp loginTime;
-  private boolean succesfulAttempt;
+  private LocalDateTime loginTime;
+  private boolean successfulAttempt;
+
+  public LoginAttempt(int attemptId, int agentId, LocalDateTime loginTime, boolean successfulAttempt ) {
+    this.attemptId = attemptId;
+    this.agentId = agentId;
+    this.loginTime = loginTime;
+    this.successfulAttempt = successfulAttempt;
+  }
+  public LoginAttempt(int agentId, LocalDateTime loginTime, boolean successfulAttempt) {
+    this.agentId = agentId;
+    this.loginTime = loginTime;
+    this.successfulAttempt = successfulAttempt;
+  }
+
+
 
   public int getAttemptId() {
     return attemptId;
@@ -21,17 +35,17 @@ public class LoginAttempt {
   public void setAgentId(int agentId) {
     this.agentId = agentId;
   }
-  public Timestamp getLoginTime() {
+  public LocalDateTime getLoginTime() {
     return loginTime;
   }
-  public void setLoginTime(Timestamp loginTime) {
+  public void setLoginTime(LocalDateTime loginTime) {
     this.loginTime = loginTime;
   }
-  public boolean isSuccesfulAttempt() {
-    return succesfulAttempt;
+  public boolean isSuccessfulAttempt() {
+    return successfulAttempt;
   }
-  public void setSuccesfulAttempt(boolean succesfulAttempt) {
-    this.succesfulAttempt = succesfulAttempt;
+  public void setSuccessfulAttempt(boolean successfulAttempt) {
+    this.successfulAttempt = successfulAttempt;
   }
 
 
