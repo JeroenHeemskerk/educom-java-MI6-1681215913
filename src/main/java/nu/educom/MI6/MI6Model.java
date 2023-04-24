@@ -32,8 +32,8 @@ public class MI6Model {
     return repo.readAgentByServiceNr(serviceNumber);
  }
 
-  Agent validateAgent(String serviceNumber, String secretCode) {
-    return repo.readAgentByServiceNumAndSecretCode(serviceNumber, secretCode);
+  boolean isCorrectSecretCode(String serviceNumber, String secretCode) {
+    return repo.readAgentByServiceNumAndSecretCode(serviceNumber, secretCode) != null;
   }
 
 
@@ -50,11 +50,10 @@ public class MI6Model {
     return 0;
   }
   void storeLoginAttempt(LoginAttempt newAttempt) {
-
    repo.createLoginAttempt(newAttempt);
   }
 List<LoginAttempt> getLastFailedLoginAttempts(Agent agent) {
-    failedAttempts = repo.readLastFailedLoginAttempts(agent.id());
+    failedAttempts = repo.readLastFailedLoginAttempts(agent.getId());
     return failedAttempts;
 }
 

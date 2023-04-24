@@ -40,7 +40,7 @@ public class Presenter implements IPresenter {
             currentState = STATES.READY;
           } else {
             if (model.validateServiceNr(serviceNumber) == null) { // agent does not exist in database
-              theView.showMessage("Wrong secret code!");
+              theView.showMessage("Access denied!");
               currentState = STATES.READY;
             } else {
               currentState = STATES.WAIT_FOR_SECRET_CODE;
@@ -50,7 +50,7 @@ public class Presenter implements IPresenter {
         }
         case SECRET_CODE_RECEIVED -> {
           Agent agent = model.validateServiceNr(serviceNumber);
-          if(!agent.active()) {
+          if(!agent.isActive()) {
             theView.showMessage("You are in cool down (forever)");
             currentState = STATES.READY;
             break;
@@ -59,9 +59,9 @@ public class Presenter implements IPresenter {
           if (model.getLastFailedLoginAttempts(agent).size() > 0 && (timeLeft = model.timeOutLeft()) > 0) {
             theView.showMessage(String.format("You are in cool down. You can login after %d seconds", timeLeft));
           } else {
-            if (model.validateAgent(serviceNumber, secretCode) == null) {
+            if (!model.isCorrectSecretCode(serviceNumber, secretCode)) {
               theView.showMessage("Wrong secret code!");
-              model.storeLoginAttempt(new LoginAttempt(agent.id(), LocalDateTime.now(), false));
+              model.storeLoginAttempt(new LoginAttempt(agent.getId(), LocalDateTime.now(), false));
             } else {
               StringBuilder failedAttempts = new StringBuilder("\nFailed login attempts: \n");
               for (LoginAttempt attempt : model.getFailedAttempts()) {
@@ -73,14 +73,13 @@ public class Presenter implements IPresenter {
               }
               theView.showMessage(
                 String.format("You are logged in, agent %s. ", serviceNumber) +
-                  (agent.licenseToKill() && LocalDate.now().isBefore(agent.licenseValidUntil()) ?
-                    "You have a license to kill and it expires on " + agent.licenseValidUntil() : "You have no license to kill or it has expired"
+                  (agent.isLicenseToKill() && LocalDate.now().isBefore(agent.getLicenseValidUntil()) ?
+                    "You have a license to kill and it expires on " + agent.getLicenseValidUntil() : "You have no license to kill or it has expired"
                     + String.format(failedAttempts.toString())
                   ));
-            model.storeLoginAttempt(new LoginAttempt(agent.id(), LocalDateTime.now(), true));
+            model.storeLoginAttempt(new LoginAttempt(agent.getId(), LocalDateTime.now(), true));
             }
           }
-
           currentState = STATES.READY;
         }
       }

@@ -51,14 +51,13 @@ public class DatabaseRepository {
       boolean exists = rs.next();
       if (exists) {
         int id = rs.getInt("id");
-        String serviceNum = rs.getString("service_number");
         String secretCode = rs.getString("secret_code");
         boolean active = rs.getBoolean("active");
         boolean licenseToKill = rs.getBoolean("license_to_kill");
         LocalDate date = rs.getDate("license_valid_until").toLocalDate();
-        return new Agent(id, active, licenseToKill, date);
+        return new Agent(id, serviceNumber, secretCode, active, licenseToKill, date);
       }
-
+      conn.close();
       rs.close();
       preparedStmt.close();
 
@@ -85,7 +84,7 @@ public class DatabaseRepository {
         boolean active = rs.getBoolean("active");
         boolean licenseToKill = rs.getBoolean("license_to_kill");
         LocalDate date = rs.getDate("license_valid_until").toLocalDate();
-        return new Agent(id, active, licenseToKill, date);
+        return new Agent(id, serviceNum, secretCode, active, licenseToKill, date);
       }
       rs.close();
       preparedStmt.close();
