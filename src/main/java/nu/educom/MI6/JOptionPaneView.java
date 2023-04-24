@@ -2,10 +2,8 @@ package nu.educom.MI6;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class JOptionPaneView implements IView, ActionListener {
+public class JOptionPaneView implements IView {
   private final JFrame mainWindow;
   private final JTextField serviceNumberField;
   private final JPasswordField secretCodeField;
@@ -90,7 +88,6 @@ public class JOptionPaneView implements IView, ActionListener {
     return String.valueOf(secretCodeField.getPassword());
 
   }
-
   @Override
   public void addPresenterListener(IPresenter p) {
     this.presenter = p;
@@ -98,32 +95,9 @@ public class JOptionPaneView implements IView, ActionListener {
 
   @Override
   public void close() {
-  mainWindow.dispose();
+    mainWindow.dispose();
+    System.exit(0);
   }
+}
 
-  public void actionPerformed(ActionEvent e) {
-  }
 
-//    private class SubmitAction implements ActionListener {
-//    public void actionPerformed(ActionEvent e) {
-//      int serviceNumber = checkServiceNumber();
-//      String secretCode = secretCodeField.getText();
-//      try {
-//        if (DatabaseRepository.authenticateAgent(String.format("%03d",serviceNumber), secretCode)) {
-//          pane.setVisible(true);
-//          pane.showMessageDialog(mainWindow, String.format("You have been logged in with your service number %03d ", serviceNumber));
-//          pane.setVisible(false);
-//          serviceNumberField.setText("");
-//          secretCodeField.setText("");
-//        } else {
-//          pane.setVisible(true);
-//          pane.showMessageDialog(mainWindow, "ACCESS DENIED!", "Error", pane.ERROR_MESSAGE);
-//          pane.setVisible(false);
-//        }
-//      } catch (SQLException ex) {
-//        throw new RuntimeException(ex);
-//      }
-//    }
-  }
-
-//}

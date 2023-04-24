@@ -6,8 +6,8 @@ import java.sql.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,12 +33,9 @@ public class DatabaseRepository {
       String url = pros.getProperty("url");
 
       // create a connection to the database
-      Class.forName("com.mysql.jdbc.Driver");
       conn = DriverManager.getConnection(url, pros);
     } catch (IOException e) {
       System.out.println(e.getMessage());
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException(e);
     }
     return conn;
   }
@@ -58,8 +55,8 @@ public class DatabaseRepository {
         String secretCode = rs.getString("secret_code");
         boolean active = rs.getBoolean("active");
         boolean licenseToKill = rs.getBoolean("license_to_kill");
-        Date date = rs.getDate("license_valid_until");
-        return new Agent(id, serviceNum, secretCode, active, licenseToKill, date);
+        LocalDate date = rs.getDate("license_valid_until").toLocalDate();
+        return new Agent(id, active, licenseToKill, date);
       }
 
       rs.close();
@@ -72,7 +69,7 @@ public class DatabaseRepository {
     return null;
   }
 
-  public Agent authenticateAgent(String serviceNumber, String secret) {
+  public Agent readAgentByServiceNumAndSecretCode(String serviceNumber, String secret) {
     String sql = "SELECT * FROM agents WHERE `service_number`=? AND `secret_code`=?";
 
     try {
@@ -87,9 +84,8 @@ public class DatabaseRepository {
         String secretCode = rs.getString("secret_code");
         boolean active = rs.getBoolean("active");
         boolean licenseToKill = rs.getBoolean("license_to_kill");
-        Date date = rs.getDate("license_valid_until");
-        System.out.println("id: " + id + "serviceNum: " + serviceNum + "secret code: " + secretCode + "active: " + active + "license to kill " + licenseToKill + "license valid until" + date);
-        return new Agent(id, serviceNum, secretCode, active, licenseToKill, date);
+        LocalDate date = rs.getDate("license_valid_until").toLocalDate();
+        return new Agent(id, active, licenseToKill, date);
       }
       rs.close();
       preparedStmt.close();
@@ -98,32 +94,54 @@ public class DatabaseRepository {
       System.out.println(ex.getMessage());
     }
     return null;
-
-
   }
 
-  public List<LoginAttempt> getLastLoginAttempts(String serviceNumber) {
-    String sql = "SELECT * FROM login_attempts WHERE `service_number`= ?";
-    List<LoginAttempt> loginAttempts = new ArrayList<>();
+  public List<LoginAttempt> readLastFailedLoginAttempts(int agentId) {
+    List<LoginAttempt> failedLoginAttempts = new ArrayList<>();
+
+    // Find the latest successful login attempt
+    String subquery = "SELECT MAX(login_time) FROM login_attempts WHERE agent_id = ? AND successful_attempt = true";
+    // Combine with main query of finding the id of said login-attempt
+    String query = String.format("SELECT attempt_id as 'max_id' FROM login_attempts WHERE agent_id = ? AND login_time = (%s)", subquery);
+
     try {
       Connection conn = connectWithDatabase();
-      PreparedStatement preparedStmt = conn.prepareStatement(sql);
-      preparedStmt.setString(1, serviceNumber);
+      PreparedStatement preparedStmt = conn.prepareStatement(query);
+      preparedStmt.setInt(1, agentId);
+      preparedStmt.setInt(2, agentId);
       ResultSet rs = preparedStmt.executeQuery();
 
-      while (rs.next()) {
-        loginAttempts.add(new LoginAttempt(rs.getInt("attempt_id"), rs.getInt("agent_id"), rs.getTimestamp("login_time").toLocalDateTime(), rs.getBoolean("successful_attempt")));
-
-
+      // If there is no previous successful login, set value to 0
+      int lastSuccessId;
+      try {
+        rs.next();
+        lastSuccessId = rs.getInt("max_id");
+      } catch (SQLException e) {
+        lastSuccessId = 0;
       }
 
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
+      query = "SELECT * FROM login_attempts WHERE agent_id = ?";
+      if (lastSuccessId > 0) // if there has been a successful login before
+      {
+        query = String.format("SELECT * FROM login_attempts WHERE agent_id = ? AND attempt_id > %s", lastSuccessId);
+      }
+
+      preparedStmt = conn.prepareStatement(query);
+      preparedStmt.setInt(1, agentId);
+      rs = preparedStmt.executeQuery();
+
+      while (rs.next()) {
+        failedLoginAttempts.add(new LoginAttempt(rs.getInt("attempt_id"), rs.getInt("agent_id"), rs.getTimestamp("login_time").toLocalDateTime(), rs.getBoolean("successful_attempt")));
+      }
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+
     }
-    return loginAttempts;
+
+    return failedLoginAttempts;
   }
 
-  public void insertLoginAttempt (LoginAttempt attempt) {
+  public void createLoginAttempt(LoginAttempt attempt) {
     String sql = "INSERT INTO login_attempts(`agent_id`, login_time, successful_attempt) VALUES (?, ?, ?)";
 
     try {
@@ -139,12 +157,5 @@ public class DatabaseRepository {
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
     }
-
   }
 }
-
-
-
-
-
-
