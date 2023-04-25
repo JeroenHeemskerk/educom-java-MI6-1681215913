@@ -29,7 +29,7 @@ public class MI6Model {
   }
 
  Agent validateServiceNr(String serviceNumber) {
-    return repo.readAgentByServiceNr(serviceNumber);
+    return repo.getAgentByServiceNumber(serviceNumber);
  }
 
   boolean isCorrectSecretCode(String serviceNumber, String secretCode) {

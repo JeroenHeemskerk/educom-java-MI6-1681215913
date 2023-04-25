@@ -1,7 +1,12 @@
 package nu.educom.MI6;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "agents")
 public class Agent {
   private int id;
   private String serviceNumber;
@@ -21,8 +26,14 @@ public class Agent {
     this.licenseValidUntil = licenseValidUntil;
   }
 
+  public Agent() {}
+
+
 
   // Getters and setters
+  @Id
+  @GeneratedValue(generator="increment")
+  @GenericGenerator(name="increment", strategy = "increment")
   public int getId() {
     return id;
   }
@@ -30,6 +41,7 @@ public class Agent {
   public void setId(int id) {
     this.id = id;
   }
+  @Column(name = "service_number")
   public String getServiceNumber() {
     return serviceNumber;
   }
@@ -37,6 +49,7 @@ public class Agent {
   public void setServiceNumber(String serviceNumber) {
     this.serviceNumber = serviceNumber;
   }
+  @Column(name = "secret_code")
   public String getSecretCode() {
     return secretCode;
   }
@@ -51,6 +64,7 @@ public class Agent {
   }
 
 
+  @Column(name = "license_to_kill")
   public boolean isLicenseToKill() {
     return licenseToKill;
   }
@@ -59,6 +73,8 @@ public class Agent {
     this.licenseToKill = licenseToKill;
   }
 
+
+  @Column(name = "license_valid_until")
   public LocalDate getLicenseValidUntil() {
     return licenseValidUntil;
   }

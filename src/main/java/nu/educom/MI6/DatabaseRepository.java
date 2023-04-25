@@ -1,5 +1,7 @@
 package nu.educom.MI6;
 
+import org.hibernate.Session;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.*;
@@ -18,6 +20,7 @@ public class DatabaseRepository {
    *
    * @return a Connection object
    */
+  private Session session = HibernateUtil.openSession();
 
   public Connection connectWithDatabase() throws SQLException {
 
@@ -38,6 +41,12 @@ public class DatabaseRepository {
       System.out.println(e.getMessage());
     }
     return conn;
+  }
+
+  public Agent getAgentByServiceNumber(String serviceNr) {
+    Agent agent = this.session.createQuery("from Agent WHERE service_number = :serviceNr", Agent.class)
+      .setParameter("serviceNr", serviceNr).uniqueResultOptional().orElse(null);
+    return agent;
   }
 
   Agent readAgentByServiceNr(String serviceNumber) {
