@@ -1,6 +1,7 @@
 package nu.educom.MI6;
 
 import org.hibernate.Session;
+
 import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +10,12 @@ public class DatabaseRepository {
 
   private Session session = HibernateUtil.openSession();
 
-  public Agent getAgentByServiceNumber(String serviceNr) {
+  public Agent readAgentByServiceNumber(String serviceNr) {
     Agent agent = this.session.createQuery("from Agent WHERE service_number = :serviceNr", Agent.class)
       .setParameter("serviceNr", serviceNr).uniqueResultOptional().orElse(null);
     return agent;
   }
-  public Agent getAgentByServiceNumAndSecretCode(String serviceNr, String secret) {
+  public Agent readAgentByServiceNumAndSecretCode(String serviceNr, String secret) {
     Agent agent = this.session.createQuery("from Agent WHERE service_number = :serviceNr AND secret_code = :secret", Agent.class)
       .setParameter("serviceNr", serviceNr)
       .setParameter("secret", secret)
@@ -51,4 +52,5 @@ public class DatabaseRepository {
     session.getTransaction().commit();
 
   }
+
 }

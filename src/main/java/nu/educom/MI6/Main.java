@@ -7,6 +7,7 @@ public class Main {
     MI6Model model = new MI6Model(repo);
     Presenter presenter = new Presenter(view, model);
     presenter.run();
+    HibernateUtil.shutdown();
   }
 }
 
