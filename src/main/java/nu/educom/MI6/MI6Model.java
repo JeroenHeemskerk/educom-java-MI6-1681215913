@@ -33,7 +33,7 @@ public class MI6Model {
  }
 
   boolean isCorrectSecretCode(String serviceNumber, String secretCode) {
-    return repo.readAgentByServiceNumAndSecretCode(serviceNumber, secretCode) != null;
+    return repo.getAgentByServiceNumAndSecretCode(serviceNumber, secretCode) != null;
   }
 
 
