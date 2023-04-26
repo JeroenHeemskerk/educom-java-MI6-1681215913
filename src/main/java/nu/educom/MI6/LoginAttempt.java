@@ -1,7 +1,6 @@
 package nu.educom.MI6;
 
 import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -14,12 +13,6 @@ public class LoginAttempt {
   private LocalDateTime loginTime;
   private boolean successfulAttempt;
 
-  public LoginAttempt(int attemptId, int agentId, LocalDateTime loginTime, boolean successfulAttempt ) {
-    this.attemptId = attemptId;
-    this.agentId = agentId;
-    this.loginTime = loginTime;
-    this.successfulAttempt = successfulAttempt;
-  }
   public LoginAttempt(int agentId, LocalDateTime loginTime, boolean successfulAttempt) {
     this.agentId = agentId;
     this.loginTime = loginTime;

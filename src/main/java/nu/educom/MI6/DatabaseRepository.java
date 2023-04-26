@@ -8,19 +8,17 @@ import java.util.List;
 
 public class DatabaseRepository {
 
-  private Session session = HibernateUtil.openSession();
+  private final Session session = HibernateUtil.openSession();
 
   public Agent readAgentByServiceNumber(String serviceNr) {
-    Agent agent = this.session.createQuery("from Agent WHERE service_number = :serviceNr", Agent.class)
+    return this.session.createQuery("from Agent WHERE service_number = :serviceNr", Agent.class)
       .setParameter("serviceNr", serviceNr).uniqueResultOptional().orElse(null);
-    return agent;
   }
   public Agent readAgentByServiceNumAndSecretCode(String serviceNr, String secret) {
-    Agent agent = this.session.createQuery("from Agent WHERE service_number = :serviceNr AND secret_code = :secret", Agent.class)
+    return this.session.createQuery("from Agent WHERE service_number = :serviceNr AND secret_code = :secret", Agent.class)
       .setParameter("serviceNr", serviceNr)
       .setParameter("secret", secret)
       .uniqueResultOptional().orElse(null);
-    return agent;
   }
 
   public List<LoginAttempt> readLastFailedLoginAttempts(int agentId) {
@@ -30,7 +28,7 @@ public class DatabaseRepository {
     String subquery = "SELECT MAX(la.loginTime) FROM LoginAttempt la WHERE agent_id = :agentId AND successful_attempt = true";
     // Combine with main query of finding the id of said login-attempt
     String query = String.format("SELECT attemptId FROM LoginAttempt WHERE agent_id = :agentId AND login_time = (%s)", subquery);
-    Integer lastSuccessId = (Integer) session.createQuery(query).setParameter("agentId", agentId).uniqueResultOptional().orElse(null);
+    Integer lastSuccessId = (Integer) session.createQuery(query).setParameter("agentId", agentId).uniqueResult();
     if (lastSuccessId == null) {
       lastSuccessId = 0;
     }
@@ -41,7 +39,13 @@ public class DatabaseRepository {
       loginAttempts = String.format("FROM LoginAttempt WHERE agent_id = :agentId AND attempt_id > %s", lastSuccessId);
     }
     Query attempts = session.createQuery(loginAttempts).setParameter("agentId", agentId);
-    failedLoginAttempts = attempts.getResultList();
+    for (Object o : attempts.getResultList()) {
+      try {
+        failedLoginAttempts.add((LoginAttempt) o);
+      } catch(ClassCastException e) {
+        System.out.println(e.getMessage());
+      }
+    }
 
     return failedLoginAttempts;
   }
