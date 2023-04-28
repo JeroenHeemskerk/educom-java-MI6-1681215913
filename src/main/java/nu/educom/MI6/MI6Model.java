@@ -53,7 +53,7 @@ public class MI6Model {
    repo.createLoginAttempt(newAttempt);
   }
 List<LoginAttempt> getLastFailedLoginAttempts(Agent agent) {
-    failedAttempts = repo.readLastFailedLoginAttempts(agent.getId());
+    failedAttempts = repo.readLastFailedLoginAttempts(agent);
     return failedAttempts;
 }
 

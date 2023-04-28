@@ -2,7 +2,6 @@ package nu.educom.MI6;
 
 import org.hibernate.Session;
 
-import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,32 +20,20 @@ public class DatabaseRepository {
       .uniqueResultOptional().orElse(null);
   }
 
-  public List<LoginAttempt> readLastFailedLoginAttempts(int agentId) {
+  public List<LoginAttempt> readLastFailedLoginAttempts(Agent agent) {
     List<LoginAttempt> failedLoginAttempts = new ArrayList<>();
 
     // Find the latest successful login attempt
-    String subquery = "SELECT MAX(la.loginTime) FROM LoginAttempt la WHERE agent_id = :agentId AND successful_attempt = true";
-    // Combine with main query of finding the id of said login-attempt
-    String query = String.format("SELECT attemptId FROM LoginAttempt WHERE agent_id = :agentId AND login_time = (%s)", subquery);
-    Integer lastSuccessId = (Integer) session.createQuery(query).setParameter("agentId", agentId).uniqueResult();
-    if (lastSuccessId == null) {
-      lastSuccessId = 0;
-    }
+    LoginAttempt lastSuccessAttempt = session.createQuery("FROM LoginAttempt la WHERE agent_id = :agentId AND successful_attempt = true ORDER BY attempt_id DESC", LoginAttempt.class)
+      .setParameter("agentId", agent.getId()).setMaxResults(1).uniqueResultOptional().orElse(null);
 
-    String loginAttempts = "FROM LoginAttempt WHERE agent_id = :agentId";
-    if (lastSuccessId > 0) // if there has been a successful login before
-    {
-      loginAttempts = String.format("FROM LoginAttempt WHERE agent_id = :agentId AND attempt_id > %s", lastSuccessId);
-    }
-    Query attempts = session.createQuery(loginAttempts).setParameter("agentId", agentId);
-    for (Object o : attempts.getResultList()) {
-      try {
-        failedLoginAttempts.add((LoginAttempt) o);
-      } catch(ClassCastException e) {
-        System.out.println(e.getMessage());
-      }
-    }
+    if (lastSuccessAttempt != null) {
+      failedLoginAttempts = session.createQuery("FROM LoginAttempt WHERE agent_id = :agentId AND attempt_id > :successId", LoginAttempt.class)
+        .setParameter("agentId", agent.getId())
+        .setParameter("successId", lastSuccessAttempt.getAttemptId())
+        .getResultList();
 
+    }
     return failedLoginAttempts;
   }
 
