@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseRepository {
-    Session session = HibernateUtil.openSession();
+  Session session = HibernateUtil.openSession();
 
 
   public void closeSession() {
@@ -20,13 +20,14 @@ public class DatabaseRepository {
       .setParameter("serviceNr", serviceNr).uniqueResultOptional().orElse(null);
     return agent;
   }
+
   public Agent readAgentByServiceNumAndSecretCode(String serviceNr, String secret) {
 
-      Agent agent = session.createQuery("from Agent WHERE service_number = :serviceNr AND secret_code = :secret", Agent.class)
+    Agent agent = session.createQuery("from Agent WHERE service_number = :serviceNr AND secret_code = :secret", Agent.class)
       .setParameter("serviceNr", serviceNr)
       .setParameter("secret", secret)
       .uniqueResultOptional().orElse(null);
-      return agent;
+    return agent;
   }
 
   public List<LoginAttempt> readLastFailedLoginAttempts(Agent agent) {
@@ -43,22 +44,16 @@ public class DatabaseRepository {
       since = LocalDateTime.MIN;
     }
 
-
-      failedLoginAttempts = session.createQuery("FROM LoginAttempt WHERE agent_id = :agentId AND login_time > :since", LoginAttempt.class)
-        .setParameter("agentId", agent.getId())
-        .setParameter("since", since)
-        .getResultList();
-
-
+    failedLoginAttempts = session.createQuery("FROM LoginAttempt WHERE agent_id = :agentId AND login_time > :since", LoginAttempt.class)
+      .setParameter("agentId", agent.getId())
+      .setParameter("since", since)
+      .getResultList();
     return failedLoginAttempts;
   }
 
   public void createLoginAttempt(LoginAttempt attempt) {
-    Session session = HibernateUtil.getSessionFactory().openSession();
     session.beginTransaction();
     session.save(attempt);
     session.getTransaction().commit();
-    session.close();
   }
-
 }
